@@ -166,7 +166,8 @@ function esp.ground_circle(params)
 			loc = { dx9.GetMouse().x, dx9.GetMouse().y }
 		end
 
-		dx9.DrawLine(loc, { position.x, position.y, position.z }, color)
+		local world_to_screen = dx9.WorldToScreen({ position.x, position.y, position.z })
+		dx9.DrawLine(loc, { world_to_screen.x, world_to_screen.y, world_to_screen.z }, color)
 	end
 
 	for i = 0, steps - 1 do
