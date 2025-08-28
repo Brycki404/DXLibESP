@@ -121,13 +121,13 @@ function esp.ground_circle(params)
 	local color = params.color or { 255, 255, 255 }
 	local steps = params.steps or 36
 
-	if target == nil then
-		print("[Error] GroundCircle: Target can't be nil")
+	local pi = math.pi
+	local position = target and dx9.GetPosition(target) or params.position or nil
+	
+	if position == nil then
+		print("[Error] GroundCircle: either params.target or params.position can't be nil")
 		return
 	end
-
-	local pi = math.pi
-	local position = dx9.GetPosition(target)
 
 	for i = 0, steps - 1 do
 		local angle_1 = (2 * pi * i) / steps
