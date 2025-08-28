@@ -117,22 +117,34 @@ end
 
 function esp.ground_circle(params)
 	local target = params.target or nil
+	local hipheight = params.hipheight or 3
+	local nametagheight = params.nametagheight or 0
 	local nametag = params.nametag or false
+	local custom_nametag = params.custom_nametag or false
+	local distance = params.distance or false
+	local custom_distance = params.custom_distance or false
 	local radius = params.radius or 10
 	local color = params.color or { 255, 255, 255 }
 	local steps = params.steps or 36
 
 	local pi = math.pi
 	local position = target and dx9.GetPosition(target) or params.position or nil
-	
+
 	if position == nil then
 		print("[Error] GroundCircle: either params.target or params.position can't be nil")
 		return
 	end
 
-	if nametag then
-		local world_to_screen = dx9.WorldToScreen({ position.x, position.y, position.z })
-		dx9.DrawString({ world_to_screen.x - (dx9.CalcTextWidth(nametag) / 2), world_to_screen.y + 20 }, color, nametag)
+	local groundposition = {position.x, position.y - hipheight, position.z}
+	local nametagposition = {position.x, position.y + nametagheight, position.z}
+
+	if nametag and custom_nametag then
+		if distance and custom_distance then
+			custom_nametag = custom_nametag .. " [" .. tostring(custom_distance) .. " m]"
+		end
+
+		local world_to_screen = dx9.WorldToScreen({ nametagposition.x, nametagposition.y, nametagposition.z })
+		dx9.DrawString({ world_to_screen.x - (dx9.CalcTextWidth(custom_nametag) / 2), world_to_screen.y + 20 }, color, custom_nametag)
 	end
 
 	for i = 0, steps - 1 do
@@ -140,14 +152,14 @@ function esp.ground_circle(params)
 		local angle_2 = (2 * pi * (i + 1)) / steps
 
 		local point_1 = {
-			x = position.x + radius * math.cos(angle_1),
-			y = position.y,
-			z = position.z + radius * math.sin(angle_1),
+			x = groundposition.x + radius * math.cos(angle_1),
+			y = groundposition.y,
+			z = groundposition.z + radius * math.sin(angle_1),
 		}
 		local point_2 = {
-			x = position.x + radius * math.cos(angle_2),
-			y = position.y,
-			z = position.z + radius * math.sin(angle_2),
+			x = groundposition.x + radius * math.cos(angle_2),
+			y = groundposition.y,
+			z = groundposition.z + radius * math.sin(angle_2),
 		}
 
 		local screen_1 = dx9.WorldToScreen({ point_1.x, point_1.y, point_1.z })
