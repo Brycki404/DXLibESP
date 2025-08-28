@@ -130,15 +130,15 @@ function esp.ground_circle(params)
 	local tracertype = params.tracer_type or 1 --// 1 = near-bottom, 2 = bottom, 3 = top, 4 = Mouse
 
 	local pi = math.pi
-	local position = target and dx9.GetPosition(target) or params.position or nil
+	local position = target ~= nil and target ~= 0 and dx9.GetPosition(target) or params.position or nil
 
 	if position == nil then
 		print("[Error] GroundCircle: either params.target or params.position can't be nil")
 		return
 	end
 
-	local groundposition = {position.x, position.y - hipheight, position.z}
-	local nametagposition = {position.x, position.y + nametagheight, position.z}
+	local groundposition = {x = position.x, y = position.y - hipheight, z = position.z}
+	local nametagposition = {x = position.x, y = position.y + nametagheight, z = position.z}
 
 	if nametag and custom_nametag then
 		if distance and custom_distance then
