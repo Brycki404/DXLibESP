@@ -123,7 +123,7 @@ function esp.ground_circle(params)
 	local custom_nametag = params.custom_nametag or false
 	local distance = params.distance or false
 	local custom_distance = params.custom_distance or false
-	local radius = params.radius or 10
+	local radius = params.radius or 2.5
 	local color = params.color or { 255, 255, 255 }
 	local steps = params.steps or 36
 
