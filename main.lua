@@ -130,7 +130,11 @@ function esp.ground_circle(params)
 	local tracertype = params.tracer_type or 1 --// 1 = near-bottom, 2 = bottom, 3 = top, 4 = Mouse
 
 	local pi = math.pi
-	local position = target ~= nil and target ~= 0 and dx9.GetPosition(target) or params.position or nil
+	local position = params.position or nil
+
+	if position == nil then
+		position = target ~= nil and target ~= 0 and dx9.GetPosition(target) or nil
+	end
 
 	if position == nil then
 		print("[Error] GroundCircle: either params.target or params.position can't be nil")
