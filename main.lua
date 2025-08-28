@@ -117,6 +117,7 @@ end
 
 function esp.ground_circle(params)
 	local target = params.target or nil
+	local nametag = params.nametag or false
 	local radius = params.radius or 10
 	local color = params.color or { 255, 255, 255 }
 	local steps = params.steps or 36
@@ -127,6 +128,11 @@ function esp.ground_circle(params)
 	if position == nil then
 		print("[Error] GroundCircle: either params.target or params.position can't be nil")
 		return
+	end
+
+	if nametag then
+		local world_to_screen = dx9.WorldToScreen({ position.x, position.y, position.z })
+		dx9.DrawString({ world_to_screen.x - (dx9.CalcTextWidth(nametag) / 2), world_to_screen.y + 20 }, color, nametag)
 	end
 
 	for i = 0, steps - 1 do
