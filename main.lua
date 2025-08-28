@@ -126,6 +126,8 @@ function esp.ground_circle(params)
 	local radius = params.radius or 2.5
 	local color = params.color or { 255, 255, 255 }
 	local steps = params.steps or 36
+	local tracer = params.tracer or false
+	local tracertype = params.tracer_type or 1 --// 1 = near-bottom, 2 = bottom, 3 = top, 4 = Mouse
 
 	local pi = math.pi
 	local position = target and dx9.GetPosition(target) or params.position or nil
@@ -145,6 +147,22 @@ function esp.ground_circle(params)
 
 		local world_to_screen = dx9.WorldToScreen({ nametagposition.x, nametagposition.y, nametagposition.z })
 		dx9.DrawString({ world_to_screen.x - (dx9.CalcTextWidth(custom_nametag) / 2), world_to_screen.y + 20 }, color, custom_nametag)
+	end
+
+	if tracer then
+		local loc
+
+		if tracertype == 1 then
+			loc = { dx9.size().width / 2, dx9.size().height / 1.1 }
+		elseif tracertype == 2 then
+			loc = { dx9.size().width / 2, dx9.size().height }
+		elseif tracertype == 3 then
+			loc = { dx9.size().width / 2, 1 }
+		else
+			loc = { dx9.GetMouse().x, dx9.GetMouse().y }
+		end
+
+		dx9.DrawLine(loc, { position.x, position.y, position.z }, color)
 	end
 
 	for i = 0, steps - 1 do
