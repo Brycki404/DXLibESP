@@ -1,3 +1,6 @@
+--indent size 4
+dx9 = dx9 --in VS Code, this gets rid of a ton of problem underlines
+
 local esp = {}
 
 local function box_3d(pos1, pos2, box_color)
