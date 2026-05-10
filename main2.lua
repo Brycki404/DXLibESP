@@ -362,4 +362,138 @@ function esp.draw_healthbar(top_left, bottom_right, health, maxhealth, color, fi
 	return anchors
 end
 
+-- Draw a 2D corner box (just corners, not full box) and return anchors
+function esp.draw_box_2d_corners_anchored(topleft, bottomright, color, thickness, corner_len, return_anchors)
+	-- Draws only the corners of a 2D box
+	color = color or {255,255,255}
+	thickness = thickness or 1
+	corner_len = corner_len or math.min((bottomright.x-topleft.x), (bottomright.y-topleft.y)) * 0.25
+	local x1, y1 = topleft.x, topleft.y
+	local x2, y2 = bottomright.x, bottomright.y
+	-- Top left
+	dx9.DrawLine({x1, y1}, {x1 + corner_len, y1}, color, thickness)
+	dx9.DrawLine({x1, y1}, {x1, y1 + corner_len}, color, thickness)
+	-- Top right
+	dx9.DrawLine({x2, y1}, {x2 - corner_len, y1}, color, thickness)
+	dx9.DrawLine({x2, y1}, {x2, y1 + corner_len}, color, thickness)
+	-- Bottom left
+	dx9.DrawLine({x1, y2}, {x1 + corner_len, y2}, color, thickness)
+	dx9.DrawLine({x1, y2}, {x1, y2 - corner_len}, color, thickness)
+	-- Bottom right
+	dx9.DrawLine({x2, y2}, {x2 - corner_len, y2}, color, thickness)
+	dx9.DrawLine({x2, y2}, {x2, y2 - corner_len}, color, thickness)
+	if return_anchors ~= true then return end
+	local anchors = {
+		center      = { x = (x1 + x2) / 2, y = (y1 + y2) / 2 },
+		topleft     = { x = x1, y = y1 },
+		topright    = { x = x2, y = y1 },
+		bottomleft  = { x = x1, y = y2 },
+		bottomright = { x = x2, y = y2 },
+		top         = { x = (x1 + x2) / 2, y = y1 },
+		bottom      = { x = (x1 + x2) / 2, y = y2 },
+		left        = { x = x1, y = (y1 + y2) / 2 },
+		right       = { x = x2, y = (y1 + y2) / 2 },
+	}
+	return anchors
+end
+
+-- Draw a 3D corner box (just corners, not full box) and return anchors
+function esp.draw_box_3d_corners_anchored(cframe, size, color, thickness, corner_len, return_anchors)
+	-- cframe: table with .Position, .RightVector, .UpVector, .LookVector
+	-- size: {x, y, z} (half extents)
+	-- Draws only the corners of a 3D box
+	color = color or {255,255,255}
+	thickness = thickness or 1
+	corner_len = corner_len or math.min(size[1], size[2], size[3]) * 0.5
+	local r = cframe.RightVector
+	local u = cframe.UpVector
+	local l = cframe.LookVector
+	local pos = cframe.Position
+	-- 8 corners in local space
+	local corners = {
+		{ 1, 1, 1 }, { -1, 1, 1 }, { -1, -1, 1 }, { 1, -1, 1 },
+		{ 1, 1, -1 }, { -1, 1, -1 }, { -1, -1, -1 }, { 1, -1, -1 }
+	}
+	local world = {}
+	for i, c in ipairs(corners) do
+		world[i] = {
+			x = pos.x + r.x * size[1] * c[1] + u.x * size[2] * c[2] + l.x * size[3] * c[3],
+			y = pos.y + r.y * size[1] * c[1] + u.y * size[2] * c[2] + l.y * size[3] * c[3],
+			z = pos.z + r.z * size[1] * c[1] + u.z * size[2] * c[2] + l.z * size[3] * c[3],
+		}
+	end
+	-- Draw corner lines for each corner
+	local function draw_corner_lines(idx, dx, dy, dz)
+		local p = world[idx]
+		local px, py, pz = p.x, p.y, p.z
+		local function to_screen(x, y, z)
+			return dx9.WorldToScreen({x, y, z})
+		end
+		-- X axis
+		local sx1 = to_screen(px, py, pz)
+		local sx2 = to_screen(px + dx, py, pz)
+		if sx1 and sx2 and sx1.x and sx2.x then dx9.DrawLine({sx1.x, sx1.y}, {sx2.x, sx2.y}, color, thickness) end
+		-- Y axis
+		local sy2 = to_screen(px, py + dy, pz)
+		if sx1 and sy2 and sx1.x and sy2.x then dx9.DrawLine({sx1.x, sx1.y}, {sy2.x, sy2.y}, color, thickness) end
+		-- Z axis
+		local sz2 = to_screen(px, py, pz + dz)
+		if sx1 and sz2 and sx1.x and sz2.x then dx9.DrawLine({sx1.x, sx1.y}, {sz2.x, sz2.y}, color, thickness) end
+	end
+	-- For each corner, draw 3 lines (along +X, +Y, +Z directions)
+	local dx = corner_len * r.x
+	local dy = corner_len * u.y
+	local dz = corner_len * l.z
+	draw_corner_lines(1,  corner_len, 0, 0)
+	draw_corner_lines(1, 0,  corner_len, 0)
+	draw_corner_lines(1, 0, 0,  corner_len)
+	draw_corner_lines(2, -corner_len, 0, 0)
+	draw_corner_lines(2, 0,  corner_len, 0)
+	draw_corner_lines(2, 0, 0,  corner_len)
+	draw_corner_lines(3, -corner_len, 0, 0)
+	draw_corner_lines(3, 0, -corner_len, 0)
+	draw_corner_lines(3, 0, 0,  corner_len)
+	draw_corner_lines(4,  corner_len, 0, 0)
+	draw_corner_lines(4, 0, -corner_len, 0)
+	draw_corner_lines(4, 0, 0,  corner_len)
+	draw_corner_lines(5,  corner_len, 0, 0)
+	draw_corner_lines(5, 0,  corner_len, 0)
+	draw_corner_lines(5, 0, 0, -corner_len)
+	draw_corner_lines(6, -corner_len, 0, 0)
+	draw_corner_lines(6, 0,  corner_len, 0)
+	draw_corner_lines(6, 0, 0, -corner_len)
+	draw_corner_lines(7, -corner_len, 0, 0)
+	draw_corner_lines(7, 0, -corner_len, 0)
+	draw_corner_lines(7, 0, 0, -corner_len)
+	draw_corner_lines(8,  corner_len, 0, 0)
+	draw_corner_lines(8, 0, -corner_len, 0)
+	draw_corner_lines(8, 0, 0, -corner_len)
+	if return_anchors ~= true then return end
+	-- Project all corners to screen
+	local anchors2d = {}
+	for i, p in ipairs(world) do
+		local s = dx9.WorldToScreen({p.x, p.y, p.z})
+		if s and s.x and s.y then anchors2d[i] = { x = s.x, y = s.y } end
+	end
+	if #anchors2d > 0 then
+		local minx, miny, maxx, maxy = math.huge, math.huge, -math.huge, -math.huge
+		for _, pt in pairs(anchors2d) do
+			if pt.x < minx then minx = pt.x end
+			if pt.y < miny then miny = pt.y end
+			if pt.x > maxx then maxx = pt.x end
+			if pt.y > maxy then maxy = pt.y end
+		end
+		anchors2d.center = { x = (minx + maxx) / 2, y = (miny + maxy) / 2 }
+		anchors2d.topleft = { x = minx, y = miny }
+		anchors2d.topright = { x = maxx, y = miny }
+		anchors2d.bottomleft = { x = minx, y = maxy }
+		anchors2d.bottomright = { x = maxx, y = maxy }
+		anchors2d.top = { x = (minx + maxx) / 2, y = miny }
+		anchors2d.bottom = { x = (minx + maxx) / 2, y = maxy }
+		anchors2d.left = { x = minx, y = (miny + maxy) / 2 }
+		anchors2d.right = { x = maxx, y = (miny + maxy) / 2 }
+	end
+	return anchors2d
+end
+
 return esp
